@@ -13,6 +13,10 @@ app.get("/health", function(req, res){
   res.status(200).send("OK");
 });
 
+function looksLikeToken(s){
+  return typeof s === "string" && s.length >= 20 && /^[A-Za-z0-9\-_]+$/.test(s);
+}
+
 app.post("/initiate-payment", async function(req, res){
   try{
     var student_name = req.body.student_name || "";
@@ -23,8 +27,14 @@ app.post("/initiate-payment", async function(req, res){
     var payment_type = req.body.payment_type || "";
     var amount = req.body.amount || "";
 
+    // formatiraj iznos na dve decimale (string)
+    if (amount) {
+      var n = Number(amount);
+      if (!isNaN(n)) amount = n.toFixed(2);
+    }
+
     var params = new URLSearchParams();
-    params.append("biller_code", process.env.PAYWAY_BILLER_CODE);
+    params.append("billerCode", process.env.PAYWAY_BILLER_CODE); // <= ispravno ime parametra
     params.append("username", process.env.PAYWAY_NET_USERNAME);
     params.append("password", process.env.PAYWAY_NET_PASSWORD);
     params.append("amount", amount);
@@ -41,7 +51,7 @@ app.post("/initiate-payment", async function(req, res){
     });
 
     var text = await r.text();
-    if(!r.ok || !text || text.length < 10){
+    if(!r.ok || !looksLikeToken(text)){
       return res.status(400).send("Token error");
     }
 
@@ -50,7 +60,6 @@ app.post("/initiate-payment", async function(req, res){
         <body>
           <form id="payway" action="https://www.payway.com.au/MakePayment" method="POST">
             <input type="hidden" name="cartToken" value="${text}">
-            <input type="hidden" name="billerCode" value="${process.env.PAYWAY_BILLER_CODE}">
           </form>
           <script>document.getElementById('payway').submit()</script>
         </body>

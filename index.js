@@ -13,6 +13,22 @@ app.get("/health", function(req, res){
   res.status(200).send("OK");
 });
 
+app.get("/ip", async function(req, res){
+  try{
+    var r = await fetch("https://api.ipify.org");
+    var ip = await r.text();
+    res.status(200).send(ip);
+  }catch(e){
+    res.status(500).send("IP error");
+  }
+});
+
+function fmtAmount(a){
+  var n = Number(a);
+  if (isNaN(n) || n <= 0) return "";
+  return n.toFixed(2);
+}
+
 function looksLikeToken(s){
   return typeof s === "string" && s.length >= 20 && /^[A-Za-z0-9\-_]+$/.test(s);
 }
@@ -25,16 +41,10 @@ app.post("/initiate-payment", async function(req, res){
     var student_id = req.body.student_id || "";
     var course = req.body.course || "";
     var payment_type = req.body.payment_type || "";
-    var amount = req.body.amount || "";
-
-    // formatiraj iznos na dve decimale (string)
-    if (amount) {
-      var n = Number(amount);
-      if (!isNaN(n)) amount = n.toFixed(2);
-    }
+    var amount = fmtAmount(req.body.amount);
 
     var params = new URLSearchParams();
-    params.append("billerCode", process.env.PAYWAY_BILLER_CODE); // <= ispravno ime parametra
+    params.append("billerCode", process.env.PAYWAY_BILLER_CODE);
     params.append("username", process.env.PAYWAY_NET_USERNAME);
     params.append("password", process.env.PAYWAY_NET_PASSWORD);
     params.append("amount", amount);
@@ -51,8 +61,10 @@ app.post("/initiate-payment", async function(req, res){
     });
 
     var text = await r.text();
+
     if(!r.ok || !looksLikeToken(text)){
-      return res.status(400).send("Token error");
+      res.status(400).send(text || "Token error");
+      return;
     }
 
     var html = `
@@ -75,7 +87,8 @@ app.post("/initiate-payment", async function(req, res){
 app.post("/payway-notify", function(req, res){
   var secret = req.body.secret || req.body.Secret || "";
   if(secret !== process.env.PAYWAY_WEBHOOK_SECRET){
-    return res.status(403).send("Forbidden");
+    res.status(403).send("Forbidden");
+    return;
   }
   res.status(200).send("OK");
 });

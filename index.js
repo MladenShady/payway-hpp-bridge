@@ -13,16 +13,6 @@ app.get("/health", function(req, res){
   res.status(200).send("OK");
 });
 
-app.get("/ip", async function(req, res){
-  try{
-    var r = await fetch("https://api.ipify.org");
-    var ip = await r.text();
-    res.status(200).send(ip);
-  }catch(e){
-    res.status(500).send("IP error");
-  }
-});
-
 function fmtAmount(a){
   var n = Number(a);
   if (isNaN(n) || n <= 0) return "";
@@ -44,7 +34,7 @@ app.post("/initiate-payment", async function(req, res){
     var amount = fmtAmount(req.body.amount);
 
     var params = new URLSearchParams();
-    params.append("billerCode", process.env.PAYWAY_BILLER_CODE);
+    params.append("biller_code", process.env.PAYWAY_BILLER_CODE);
     params.append("username", process.env.PAYWAY_NET_USERNAME);
     params.append("password", process.env.PAYWAY_NET_PASSWORD);
     params.append("amount", amount);

@@ -26,7 +26,6 @@ function looksLikeToken(s){
 app.post("/initiate-payment", async function(req, res){
   try{
     var student_name = req.body.student_name || "";
-    var date_of_birth = req.body.date_of_birth || "";
     var email = req.body.email || "";
     var student_id = req.body.student_id || "";
     var course = req.body.course || "";
@@ -35,6 +34,7 @@ app.post("/initiate-payment", async function(req, res){
 
     var params = new URLSearchParams();
     params.append("biller_code", process.env.PAYWAY_BILLER_CODE);
+    params.append("merchant_id", process.env.PAYWAY_MERCHANT_ID); // *** ključno za Shopping Cart ***
     params.append("username", process.env.PAYWAY_NET_USERNAME);
     params.append("password", process.env.PAYWAY_NET_PASSWORD);
     params.append("amount", amount);

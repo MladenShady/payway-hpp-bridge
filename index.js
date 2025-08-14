@@ -33,15 +33,18 @@ app.post("/initiate-payment", async function(req, res){
     var amount = fmtAmount(req.body.amount);
 
     var params = new URLSearchParams();
-    params.append("biller_code", process.env.PAYWAY_BILLER_CODE);
-    params.append("merchant_id", process.env.PAYWAY_MERCHANT_ID);
+    params.append("biller_code", process.env.PAYWAY_BILLER_CODE); // obavezno: underscore
     params.append("username", process.env.PAYWAY_NET_USERNAME);
     params.append("password", process.env.PAYWAY_NET_PASSWORD);
     params.append("amount", amount);
-    params.append("payment_reference", student_id);
-    params.append("customer_email", email);
-    params.append("return_url", process.env.RETURN_URL);
-    params.append("description", student_name + " | " + course + " | " + payment_type);
+    if (student_id) params.append("payment_reference", student_id);
+    if (email) params.append("customer_email", email);
+    if (process.env.RETURN_URL) params.append("return_url", process.env.RETURN_URL);
+    // merchant_id uklonjen
+
+    // opis nije obavezan, ali može da ostane
+    var desc = [student_name, course, payment_type].filter(Boolean).join(" | ");
+    if (desc) params.append("description", desc);
 
     var r = await fetch("https://www.payway.com.au/RequestToken", {
       method: "POST",

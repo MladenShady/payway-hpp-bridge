@@ -42,6 +42,15 @@ function looksLikeToken(s){
   return typeof s === "string" && s.length >= 20 && /^[A-Za-z0-9\-_]+$/.test(s);
 }
 
+function extractToken(raw){
+  if (!raw) return "";
+  var t = raw.trim();
+  if (t.startsWith("token=")) {
+    t = t.split("token=")[1].split("&")[0].trim();
+  }
+  return t;
+}
+
 app.post("/_dryrun", function(req, res){
   var student_name = req.body.student_name || "";
   var email = req.body.email || "";
@@ -108,7 +117,9 @@ app.post("/initiate-payment", async function(req, res){
       text = await r.text();
     }
 
-    if(!r || !r.ok || !looksLikeToken(text)){
+    var token = extractToken(text);
+
+    if(!r || !r.ok || !looksLikeToken(token)){
       var ipResp = "";
       try{
         var ipR = await fetch("https://api.ipify.org");
@@ -134,7 +145,7 @@ app.post("/initiate-payment", async function(req, res){
       return;
     }
 
-    var html = "<html><body><form id='payway' action='https://www.payway.com.au/MakePayment' method='POST'><input type='hidden' name='cartToken' value='" + text + "'></form><script>document.getElementById('payway').submit()</script></body></html>";
+    var html = "<html><body><form id='payway' action='https://www.payway.com.au/MakePayment' method='POST'><input type='hidden' name='cartToken' value='" + token + "'></form><script>document.getElementById('payway').submit()</script></body></html>";
     res.setHeader("Content-Type","text/html; charset=utf-8");
     res.status(200).send(html);
   }catch(e){

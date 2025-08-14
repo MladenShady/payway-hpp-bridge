@@ -34,14 +34,13 @@ app.post("/initiate-payment", async function(req, res){
 
     var params = new URLSearchParams();
     params.append("biller_code", process.env.PAYWAY_BILLER_CODE);
-    params.append("merchant_id", process.env.PAYWAY_MERCHANT_ID); // *** ključno za Shopping Cart ***
+    params.append("merchant_id", process.env.PAYWAY_MERCHANT_ID);
     params.append("username", process.env.PAYWAY_NET_USERNAME);
     params.append("password", process.env.PAYWAY_NET_PASSWORD);
     params.append("amount", amount);
     params.append("payment_reference", student_id);
     params.append("customer_email", email);
     params.append("return_url", process.env.RETURN_URL);
-    params.append("cancel_url", process.env.CANCEL_URL);
     params.append("description", student_name + " | " + course + " | " + payment_type);
 
     var r = await fetch("https://www.payway.com.au/RequestToken", {
@@ -75,11 +74,6 @@ app.post("/initiate-payment", async function(req, res){
 });
 
 app.post("/payway-notify", function(req, res){
-  var secret = req.body.secret || req.body.Secret || "";
-  if(secret !== process.env.PAYWAY_WEBHOOK_SECRET){
-    res.status(403).send("Forbidden");
-    return;
-  }
   res.status(200).send("OK");
 });
 

@@ -23,6 +23,15 @@ app.get("/ip", async function(req, res){
   }
 });
 
+app.get("/_env", function(req, res){
+  res.json({
+    PAYWAY_BILLER_CODE: process.env.PAYWAY_BILLER_CODE || null,
+    PAYWAY_NET_USERNAME: process.env.PAYWAY_NET_USERNAME || null,
+    PAYWAY_NET_PASSWORD: process.env.PAYWAY_NET_PASSWORD ? "(set)" : null,
+    RETURN_URL: process.env.RETURN_URL || null
+  });
+});
+
 function fmtAmount(a){
   var n = Number(a);
   if (isNaN(n) || n <= 0) return "";

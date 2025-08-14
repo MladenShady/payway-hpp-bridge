@@ -45,9 +45,7 @@ function looksLikeToken(s){
 function extractToken(raw){
   if (!raw) return "";
   var t = raw.trim();
-  if (t.startsWith("token=")) {
-    t = t.split("token=")[1].split("&")[0].trim();
-  }
+  if (t.startsWith("token=")) t = t.split("token=")[1].split("&")[0].trim();
   return t;
 }
 
@@ -145,7 +143,15 @@ app.post("/initiate-payment", async function(req, res){
       return;
     }
 
-    var html = "<html><body><form id='payway' action='https://www.payway.com.au/MakePayment' method='POST'><input type='hidden' name='cartToken' value='" + token + "'></form><script>document.getElementById('payway').submit()</script></body></html>";
+    var html =
+      "<html><body>" +
+      "<form id='payway' action='https://www.payway.com.au/MakePayment' method='POST'>" +
+      "<input type='hidden' name='biller_code' value='" + (process.env.PAYWAY_BILLER_CODE || "").trim() + "'>" +
+      "<input type='hidden' name='token' value='" + token + "'>" +
+      "</form>" +
+      "<script>document.getElementById('payway').submit()</script>" +
+      "</body></html>";
+
     res.setHeader("Content-Type","text/html; charset=utf-8");
     res.status(200).send(html);
   }catch(e){
